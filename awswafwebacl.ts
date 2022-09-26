@@ -57,7 +57,7 @@ class awsWafWebAcl extends Stack {
       handler: 'main',
       entry: path.join(__dirname, `./src/index.ts`),
       environment: {
-        WEB_ACL_ID: webACL.attrId
+        WEB_ACL_ARN: webACL.attrArn
       }
     });
 

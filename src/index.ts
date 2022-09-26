@@ -1,5 +1,5 @@
 import { SNSEvent } from 'aws-lambda';
-import { WAFRegionalClient, AssociateWebACLCommand } from '@aws-sdk/client-waf-regional'
+import { WAFV2Client, AssociateWebACLCommand } from '@aws-sdk/client-wafv2'
 
 export async function main(event: SNSEvent): Promise<void> {
   const message = event.Records[0].Sns.Message;
@@ -7,10 +7,15 @@ export async function main(event: SNSEvent): Promise<void> {
 
   var params = {
     ResourceArn: message,
-    WebACLId: process.env.WEB_ACL_ID
+    WebACLArn: process.env.WEB_ACL_ARN
   };
 
-  const client = new WAFRegionalClient({});
+  const client = new WAFV2Client({});
   const command = new AssociateWebACLCommand(params);
-  client.send(command)
+  try {
+    const data = await client.send(command);
+    console.log(JSON.stringify(data))
+  } catch (error) {
+    console.log(error)
+  }
 }
