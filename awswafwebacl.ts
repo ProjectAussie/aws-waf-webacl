@@ -2,16 +2,17 @@ import { App,
   Stack,
   StackProps,
   Duration,
-  CfnOutput
+  CfnOutput,
+  Tags
 } from 'aws-cdk-lib';
 import { CfnWebACL, CfnWebACLProps } from 'aws-cdk-lib/aws-wafv2';
 import { wrapManagedRuleSet } from '@aws-solutions-constructs/core';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Topic, } from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import * as iam from 'aws-cdk-lib/aws-iam';
 
 const serviceName = 'awswafwebacl';
 const environment = process.env.ENVIRONMENT || 'dev';
@@ -61,8 +62,8 @@ class awsWafWebAcl extends Stack {
       }
     });
 
-    webAclUpdater.role?.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSNSReadOnlyAccess'));
-    webAclUpdater.role?.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AWSWAFFullAccess'));
+    webAclUpdater.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSNSReadOnlyAccess'));
+    webAclUpdater.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AWSWAFFullAccess'));
 
     // Subscribe Lambda to SNS topic
     topic.addSubscription(new LambdaSubscription(webAclUpdater));
@@ -84,6 +85,10 @@ class awsWafWebAcl extends Stack {
 };
 
 const app = new App();
+
+Tags.of(app).add('product', 'aws-waf-webacl');
+Tags.of(app).add('owner', 'Platform Operations');
+Tags.of(app).add('environment', environment);
 
 new awsWafWebAcl(app, 'awsWafWebAcl', { stackName: `${serviceName}-${environment}`, env: { account: accountId, region: region }});
 
