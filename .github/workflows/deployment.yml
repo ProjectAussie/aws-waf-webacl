@@ -8,6 +8,7 @@ jobs:
   deploy:
     name: Deploy ${{ matrix.environment }}
     runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
     strategy:
       max-parallel: 1
       matrix:
