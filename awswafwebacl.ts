@@ -3,13 +3,14 @@ import { App,
   StackProps,
   Duration,
   CfnOutput,
-  Tags } from 'aws-cdk-lib';
-import { CfnWebACL, CfnWebACLProps } from 'aws-cdk-lib/aws-wafv2';
+  Tags, RemovalPolicy } from 'aws-cdk-lib';
+import { CfnWebACL, CfnWebACLProps, CfnLoggingConfiguration } from 'aws-cdk-lib/aws-wafv2';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import * as path from 'path';
 import { ManagedRule,
   CfnRemediationConfiguration,
@@ -27,6 +28,14 @@ class awsWafWebAcl extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // Create the WAF log group
+    const logGroup = new LogGroup(this, 'WebAclLogGroup', {
+      logGroupName: `aws-waf-logs-${serviceName}-${environment}`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_MONTH
+    });
+
+    // Create the WebACL and attach the rules.
     const webaclProps: CfnWebACLProps = {
       defaultAction: {
         allow: {}
@@ -41,6 +50,12 @@ class awsWafWebAcl extends Stack {
     };
 
     const webACL = new CfnWebACL(this, `${serviceName}-${environment}`, webaclProps)
+
+    const webAclLogs = new CfnLoggingConfiguration(this,'WafLoggingConfig',{
+      resourceArn: webACL.attrArn,
+      logDestinationConfigs:[ logGroup.logGroupArn ],
+    });
+    webAclLogs.node.addDependency(logGroup)
 
     // Create sns topic
     const topic = new Topic(this, 'albWafStatus', {
@@ -58,7 +73,8 @@ class awsWafWebAcl extends Stack {
       entry: path.join(__dirname, `./src/index.ts`),
       environment: {
         WEB_ACL_ARN: webACL.attrArn
-      }
+      },
+      logRetention: RetentionDays.ONE_MONTH
     });
 
     webAclUpdater.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonSNSReadOnlyAccess'));
@@ -67,25 +83,29 @@ class awsWafWebAcl extends Stack {
     // Subscribe Lambda to SNS topic
     topic.addSubscription(new LambdaSubscription(webAclUpdater));
 
-
+    // AWS Config remediation
     const configRule = new ManagedRule(this, 'ConfigAlbWafEnabled', {
-      configRuleName: 'alb-waf-enabled',
+      configRuleName: `${serviceName}-${environment}-alb-waf-enabled`,
       identifier: ManagedRuleIdentifiers.ALB_WAF_ENABLED,
       ruleScope: RuleScope.fromResources([ResourceType.ELBV2_LOAD_BALANCER]),
+      inputParameters: {
+        wafWebAclIds: webACL.attrId
+      }
     });
 
     const remediationConfiguration = new CfnRemediationConfiguration(this, 'AlbWafEnabledRemediationConfiguration', {
       configRuleName: configRule.configRuleName,
-      targetId: 'alb-waf-enabled',
+      targetId: 'AWS-PublishSNSNotification',
       targetType: 'SSM_DOCUMENT',
       automatic: false,
       parameters: {
         'Message': { ResourceValue: { Value: 'RESOURCE_ID' }},
-        'TopicArn': { StaticValue: { Value: topic.topicArn }},
+        'TopicArn': { StaticValue: { Values: [ topic.topicArn ] }},
       },
       maximumAutomaticAttempts: 2,
       retryAttemptSeconds: 60,
     });
+    remediationConfiguration.node.addDependency(configRule);
 
     new CfnOutput(this, 'snsTopicArn', {
       value: topic.topicArn,
