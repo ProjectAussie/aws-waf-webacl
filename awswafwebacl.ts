@@ -3,8 +3,7 @@ import { App,
   StackProps,
   Duration,
   CfnOutput,
-  Tags
-} from 'aws-cdk-lib';
+  Tags } from 'aws-cdk-lib';
 import { CfnWebACL, CfnWebACLProps } from 'aws-cdk-lib/aws-wafv2';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -12,6 +11,11 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
+import { ManagedRule,
+  CfnRemediationConfiguration,
+  ResourceType,
+  RuleScope,
+  ManagedRuleIdentifiers } from 'aws-cdk-lib/aws-config'
 import { awsManagedRules } from './awswafwebaclrules';
 
 const serviceName = 'awswafwebacl';
@@ -63,14 +67,25 @@ class awsWafWebAcl extends Stack {
     // Subscribe Lambda to SNS topic
     topic.addSubscription(new LambdaSubscription(webAclUpdater));
 
-    // const cfnRemediationConfiguration = new config.CfnRemediationConfiguration(this, 'alb-waf-enabled', {
-    //   configRuleName: 'alb-waf-enabled',
-    //   targetId: topic.topicArn,
-    //   targetType: 'SNS',
-    
-    //   // the properties below are optional
-    //   automatic: false,
-    // });
+
+    const configRule = new ManagedRule(this, 'ConfigAlbWafEnabled', {
+      configRuleName: 'alb-waf-enabled',
+      identifier: ManagedRuleIdentifiers.ALB_WAF_ENABLED,
+      ruleScope: RuleScope.fromResources([ResourceType.ELBV2_LOAD_BALANCER]),
+    });
+
+    const remediationConfiguration = new CfnRemediationConfiguration(this, 'AlbWafEnabledRemediationConfiguration', {
+      configRuleName: configRule.configRuleName,
+      targetId: 'alb-waf-enabled',
+      targetType: 'SSM_DOCUMENT',
+      automatic: true,
+      parameters: {
+        'Message': {ResourceValue: {Value: 'RESOURCE_ID'}},
+        'TopicArn': {StaticValue: {Values: [topic.topicArn]}},
+      },
+      maximumAutomaticAttempts: 2,
+      retryAttemptSeconds: 60,
+    });
 
     new CfnOutput(this, 'snsTopicArn', {
       value: topic.topicArn,
