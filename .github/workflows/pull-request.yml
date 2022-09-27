@@ -9,9 +9,8 @@ on:
       - main
 permissions: write-all
 env:
-  ASSUME_ROLE: arn:aws:iam::763216446258:role/githubActionsOidc
   REGION: us-east-1
-  ACCOUNT_ID: 763216446258
+  ACCOUNT_ID: ${{ secrets.ACCNT_ID_WEB_DEV }}
   ENVIRONMENT: dev
 jobs:
   pr-check:
@@ -31,7 +30,7 @@ jobs:
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@master
         with:
-          role-to-assume: ${{ env.ASSUME_ROLE }}
+          role-to-assume: ${{ secrets.ASSUME_ROLE_WEB_DEV }}
           role-duration-seconds: 1200
           aws-region: ${{ env.REGION }}
       - name: Install Dependencies
