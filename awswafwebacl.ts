@@ -6,18 +6,18 @@ import { App,
   Tags
 } from 'aws-cdk-lib';
 import { CfnWebACL, CfnWebACLProps } from 'aws-cdk-lib/aws-wafv2';
-import { wrapManagedRuleSet } from '@aws-solutions-constructs/core';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
+import { awsManagedRules } from './webaclrules';
 
 const serviceName = 'awswafwebacl';
-const environment = process.env.ENVIRONMENT || 'dev';
-const accountId =  process.env.ACCOUNT_ID || '763216446258';
-const region = process.env.REGION || 'us-east-1';
+const environment = String(process.env.ENVIRONMENT);
+const accountId =  String(process.env.ACCOUNT_ID);
+const region = String(process.env.REGION);
 
 class awsWafWebAcl extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -33,12 +33,7 @@ class awsWafWebAcl extends Stack {
         metricName: `${serviceName}-${environment}`,
         sampledRequestsEnabled: true
       },
-      rules: [
-        wrapManagedRuleSet('AWSManagedRulesCommonRuleSet', 'AWS', 0),
-        wrapManagedRuleSet('AWSManagedRulesKnownBadInputsRuleSet', 'AWS', 1),
-        wrapManagedRuleSet('AWSManagedRulesAmazonIpReputationList', 'AWS', 2),
-        wrapManagedRuleSet('AWSManagedRulesSQLiRuleSet', 'AWS', 3)
-      ]
+      rules: awsManagedRules.map(wafRule => wafRule.rule),
     };
 
     const webACL = new CfnWebACL(this, `${serviceName}-${environment}`, webaclProps)

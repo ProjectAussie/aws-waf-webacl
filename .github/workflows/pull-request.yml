@@ -1,0 +1,52 @@
+name: "Pull Request Validation"
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+permissions: write-all
+env:
+  ASSUME_ROLE: arn:aws:iam::763216446258:role/githubActionsOidc
+  REGION: us-east-1
+  ACCOUNT_ID: 763216446258
+  ENVIRONMENT: dev
+jobs:
+  pr-check:
+    name: Pull Request Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        id: checkout
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        id: set-node
+        with:
+          node-version: '16'
+          check-latest: true
+      - name: Configure AWS Credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ env.ASSUME_ROLE }}
+          role-duration-seconds: 1200
+          aws-region: ${{ env.REGION }}
+      - name: Install Dependencies
+        id: npm-i
+        run: npm install
+      - name: CDK Diff
+        id: diff
+        run: |
+          npx aws-cdk diff 2>&1 | tee diff.out
+          echo -e "\`\`\`\n$(cat diff.out)" > diff.out
+          echo -e "\`\`\`\n" >> diff.out
+      - name: PR Comment
+        if: ${{ always() && !cancelled() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment $PR --body-file diff.out
