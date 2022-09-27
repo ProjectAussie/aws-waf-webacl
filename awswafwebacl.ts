@@ -89,7 +89,7 @@ class awsWafWebAcl extends Stack {
       identifier: ManagedRuleIdentifiers.ALB_WAF_ENABLED,
       ruleScope: RuleScope.fromResources([ResourceType.ELBV2_LOAD_BALANCER]),
       inputParameters: {
-        wafWebAclIds: webACL.attrId
+        wafWebAclIds: webACL.attrArn
       }
     });
 
