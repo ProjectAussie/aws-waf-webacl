@@ -106,11 +106,6 @@ class awsWafWebAcl extends Stack {
       retryAttemptSeconds: 60,
     });
     remediationConfiguration.node.addDependency(configRule);
-
-    new CfnOutput(this, 'snsTopicArn', {
-      value: topic.topicArn,
-      description: 'The arn of the albWafStatus SNS topic',
-    });
   };
 };
 
