@@ -80,8 +80,8 @@ class awsWafWebAcl extends Stack {
       targetType: 'SSM_DOCUMENT',
       automatic: false,
       parameters: {
-        'Message': {ResourceValue: {Value: 'RESOURCE_ID'}},
-        'TopicArn': {StaticValue: {Values: [topic.topicArn]}},
+        'Message': { ResourceValue: { Value: 'RESOURCE_ID' }},
+        'TopicArn': { StaticValue: { Value: topic.topicArn }},
       },
       maximumAutomaticAttempts: 2,
       retryAttemptSeconds: 60,
