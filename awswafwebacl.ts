@@ -12,7 +12,7 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import { awsManagedRules } from './webaclrules';
+import { awsManagedRules } from './awswafwebaclrules';
 
 const serviceName = 'awswafwebacl';
 const environment = String(process.env.ENVIRONMENT);
