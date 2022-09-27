@@ -78,7 +78,7 @@ class awsWafWebAcl extends Stack {
       configRuleName: configRule.configRuleName,
       targetId: 'alb-waf-enabled',
       targetType: 'SSM_DOCUMENT',
-      automatic: true,
+      automatic: false,
       parameters: {
         'Message': {ResourceValue: {Value: 'RESOURCE_ID'}},
         'TopicArn': {StaticValue: {Values: [topic.topicArn]}},
