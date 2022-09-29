@@ -36,13 +36,14 @@ export const awsManagedRules: WafRule[] = [
       priority: 2,
       statement: {
         managedRuleGroupStatement: {
-        vendorName: 'AWS',
-        name: 'AWSManagedRulesCommonRuleSet',
-        // Excluding body size rules for SNS notifications
-        excludedRules: [
-          { name: 'GenericRFI_BODY' },
-          { name: 'SizeRestrictions_BODY' },
-        ],
+          vendorName: 'AWS',
+          name: 'AWSManagedRulesCommonRuleSet',
+          // Excluding body size rules
+          // Excluded rules get COUNTED but not BLOCKED
+          excludedRules: [
+            { name: 'GenericRFI_BODY' },
+            { name: 'SizeRestrictions_BODY' },
+          ],
         },
       },
       overrideAction: {
