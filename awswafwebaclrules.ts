@@ -19,7 +19,7 @@ export const awsManagedRules: WafRule[] = [
         },
       },
       overrideAction: {
-        count: {},
+        none: {},
       },
       visibilityConfig: {
           sampledRequestsEnabled: true,
@@ -48,7 +48,7 @@ export const awsManagedRules: WafRule[] = [
         },
       },
       overrideAction: {
-        count: {},
+        none: {},
       },
       visibilityConfig: {
         sampledRequestsEnabled: true,
@@ -69,7 +69,7 @@ export const awsManagedRules: WafRule[] = [
         metricName: 'AWSManagedRulesKnownBadInputsRuleSet',
       },
       overrideAction: {
-        count: {},
+        none: {},
       },
       statement: {
         managedRuleGroupStatement: {
@@ -92,7 +92,7 @@ export const awsManagedRules: WafRule[] = [
         metricName: 'AWSManagedRulesSQLiRuleSet',
       },
       overrideAction: {
-        count: {},
+        none: {},
       },
       statement: {
         managedRuleGroupStatement: {
@@ -115,7 +115,7 @@ export const awsManagedRules: WafRule[] = [
         metricName: 'AWSManagedRuleLinux',
       },
       overrideAction: {
-        count: {},
+        none: {},
       },
       statement: {
         managedRuleGroupStatement: {
