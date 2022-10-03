@@ -44,7 +44,6 @@ export const awsManagedRules: WafRule[] = [
             { name: 'GenericRFI_BODY' },
             { name: 'SizeRestrictions_BODY' },
             { name: 'CrossSiteScripting_COOKIE' },
-            { name: 'NoUserAgent_HEADER' },
           ],
         },
       },
