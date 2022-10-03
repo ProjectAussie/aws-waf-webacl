@@ -43,6 +43,7 @@ export const awsManagedRules: WafRule[] = [
           excludedRules: [
             { name: 'GenericRFI_BODY' },
             { name: 'SizeRestrictions_BODY' },
+            { name: 'CrossSiteScripting_COOKIE' },
           ],
         },
       },
