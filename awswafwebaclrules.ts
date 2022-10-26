@@ -5,6 +5,177 @@ interface WafRule {
   rule: CfnWebACL.RuleProperty;
 }
 
+export const rateBasedRules: WafRule[] = [
+  {
+    name: 'MyEv-RateBasedRulesPublicRoutes',
+    rule: {
+      name: 'MyEv-RateBasedRulesPublicRoutes',
+      priority: 100,
+      action: {
+        count: {}
+      },
+      visibilityConfig: {
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: 'RateBasedRulesPublicRoutes'
+      },
+      statement: {
+        rateBasedStatement: {
+          limit: 100,
+          aggregateKeyType: 'IP',
+          scopeDownStatement: {
+            regexMatchStatement: {
+              fieldToMatch: {
+                uriPath: {}
+              },
+              textTransformations: [
+                {
+                  type: 'NONE',
+                  priority: 0
+                }
+              ],
+              regexString: "\\/login|\\/forgot|\\/reset|\\/signup|\\/account\\/password|\\/auth\\/facebook|\\/auth\\/google|\\/related|\\/dogs-like-mine|\\/dog(s?)\\/*\\/|\\/ogimage|\\/redirect-to-checkout|\\/members\\/reports"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    name: 'MyEv-RateBasedRulesSAPIRoutes',
+    rule: {
+      name: 'MyEv-RateBasedRulesSAPIRoutes',
+      priority: 200,
+      statement: {
+        rateBasedStatement: {
+          limit: 2000,
+          aggregateKeyType: 'IP',
+          scopeDownStatement: {
+            byteMatchStatement: {
+              searchString: '/sapi',
+              fieldToMatch: {
+                uriPath: {}
+              },
+              textTransformations: [
+                {
+                  priority: 0,
+                  type: 'NONE'
+                }
+              ],
+              positionalConstraint: 'STARTS_WITH'
+            }
+          }
+        }
+      },
+      action: {
+        count: {}
+      },
+      visibilityConfig: {
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: 'RateBasedRulesSAPIRoutes'
+      }
+    },
+  },
+  {
+    name: 'MyEv-RateBasedRulesPublicAPIRoutes',
+    rule: {
+      name: 'MyEv-RateBasedRulesPublicAPIRoutes',
+      priority: 300,
+      action: {
+        count: {}
+      },
+      visibilityConfig: {
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: 'RateBasedRulesPublicAPIRoutes'
+      },
+      statement: {
+        rateBasedStatement: {
+          limit: 200,
+          aggregateKeyType: 'IP',
+          scopeDownStatement: {
+            andStatement: {
+              statements: [
+                {
+                  byteMatchStatement: {
+                    fieldToMatch: {
+                      uriPath: {}
+                    },
+                    positionalConstraint: 'STARTS_WITH',
+                    searchString: '/api',
+                    textTransformations: [
+                      {
+                        type: 'NONE',
+                        priority: 0
+                      }
+                    ]
+                  }
+                },
+                {
+                  notStatement: {
+                    statement: {
+                      byteMatchStatement: {
+                        fieldToMatch: {
+                          uriPath: {}
+                        },
+                        positionalConstraint: 'STARTS_WITH',
+                        searchString: '/api/qualtrics',
+                        textTransformations: [
+                          {
+                            type: 'NONE',
+                            priority: 0
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    name: 'MyEv-RateBasedRulesQualtricsApi',
+    rule: {
+      name: 'MyEv-RateBasedRulesQualtricsApi',
+      priority: 400,
+      action: {
+        count: {}
+      },
+      visibilityConfig: {
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: 'RateBasedRulesQualtricsApi'
+      },
+      statement: {
+        rateBasedStatement: {
+          limit: 3000,
+          aggregateKeyType: 'IP',
+          scopeDownStatement: {
+            byteMatchStatement: {
+              fieldToMatch: {
+                uriPath: {}
+              },
+              positionalConstraint: 'STARTS_WITH',
+              searchString: '/api/qualtrics',
+              textTransformations: [
+                {
+                  type: 'NONE',
+                  priority: 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+]
+
 export const awsManagedRules: WafRule[] = [
   // AWS IP Reputation list includes known malicious actors/bots and is regularly updated
   {
@@ -22,16 +193,16 @@ export const awsManagedRules: WafRule[] = [
         none: {},
       },
       visibilityConfig: {
-          sampledRequestsEnabled: true,
-          cloudWatchMetricsEnabled: true,
-          metricName: 'AWSManagedRulesAmazonIpReputationList',
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: 'AWSManagedRulesAmazonIpReputationList',
       },
     },
   },
   // Common Rule Set aligns with major portions of OWASP Core Rule Set
   {
     name: 'AWS-AWSManagedRulesCommonRuleSet',
-    rule:  {
+    rule: {
       name: 'AWS-AWSManagedRulesCommonRuleSet',
       priority: 2,
       statement: {

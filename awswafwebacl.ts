@@ -2,7 +2,6 @@ import { App,
   Stack,
   StackProps,
   Duration,
-  CfnOutput,
   Tags, RemovalPolicy } from 'aws-cdk-lib';
 import { CfnWebACL, CfnWebACLProps, CfnLoggingConfiguration } from 'aws-cdk-lib/aws-wafv2';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -17,7 +16,7 @@ import { ManagedRule,
   ResourceType,
   RuleScope,
   ManagedRuleIdentifiers } from 'aws-cdk-lib/aws-config'
-import { awsManagedRules } from './awswafwebaclrules';
+import { awsManagedRules, rateBasedRules } from './awswafwebaclrules';
 
 const serviceName = 'awswafwebacl';
 const environment = String(process.env.ENVIRONMENT);
@@ -46,7 +45,7 @@ class awsWafWebAcl extends Stack {
         metricName: `${serviceName}-${environment}`,
         sampledRequestsEnabled: true
       },
-      rules: awsManagedRules.map(wafRule => wafRule.rule),
+      rules: [...awsManagedRules, ...rateBasedRules].map(wafRule => wafRule.rule),
     };
 
     const webACL = new CfnWebACL(this, `${serviceName}-${environment}`, webaclProps)
