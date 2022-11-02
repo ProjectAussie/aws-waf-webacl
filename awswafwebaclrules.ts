@@ -12,7 +12,7 @@ export const rateBasedRules: WafRule[] = [
       name: 'MyEv-RateBasedRulesPublicRoutes',
       priority: 100,
       action: {
-        count: {}
+        block: {}
       },
       visibilityConfig: {
         sampledRequestsEnabled: true,
@@ -68,7 +68,7 @@ export const rateBasedRules: WafRule[] = [
         }
       },
       action: {
-        count: {}
+        block: {}
       },
       visibilityConfig: {
         sampledRequestsEnabled: true,
@@ -83,7 +83,7 @@ export const rateBasedRules: WafRule[] = [
       name: 'MyEv-RateBasedRulesPublicAPIRoutes',
       priority: 300,
       action: {
-        count: {}
+        block: {}
       },
       visibilityConfig: {
         sampledRequestsEnabled: true,
@@ -144,7 +144,7 @@ export const rateBasedRules: WafRule[] = [
       name: 'MyEv-RateBasedRulesQualtricsApi',
       priority: 400,
       action: {
-        count: {}
+        block: {}
       },
       visibilityConfig: {
         sampledRequestsEnabled: true,
