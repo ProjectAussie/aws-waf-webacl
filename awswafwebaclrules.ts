@@ -34,7 +34,21 @@ export const rateBasedRules: WafRule[] = [
                   priority: 0
                 }
               ],
-              regexString: "\\/login|\\/forgot|\\/reset|\\/signup|\\/account\\/password|\\/auth\\/facebook|\\/auth\\/google|\\/related|\\/dogs-like-mine|\\/dog(s?)\\/*\\/|\\/ogimage|\\/redirect-to-checkout|\\/members\\/reports"
+              regexString: [
+                '^/login',
+                '^/forgot',
+                '^/reset',
+                '^/signup',
+                '^/account/password',
+                '^/auth/facebook',
+                '^/auth/google',
+                '^/related',
+                '^/dogs-like-mine',
+                '^/dog(s?)/*/',
+                '^/ogimage',
+                '^/redirect-to-checkout',
+                '^/members/reports'
+            ].join('|')
             }
           }
         }
